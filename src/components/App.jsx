@@ -8,7 +8,7 @@ import { getPicturesBySearch } from '../API/hits';
 import { useEffect, useState } from 'react';
 
 export const App = () => {
-  const [hits, setHits] = useState([]);
+  const [images, setImages] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -24,7 +24,7 @@ export const App = () => {
         const data = await getPicturesBySearch(searchQuery, page);
         const { hits, totalHits } = data;
 
-        setHits([...hits, ...hits]);
+        setImages([...images, ...hits]);
         setTotalHits(totalHits);
       } catch (error) {
         setError(error.response.data);
@@ -39,7 +39,7 @@ export const App = () => {
   const handlySetSearchQuery = value => {
     setSearchQuery(value);
     setPage(1);
-    setHits([]);
+    setImages([]);
   };
 
   const togleModal = () => {
@@ -65,10 +65,10 @@ export const App = () => {
       )}
       <Searchbar handlySetSearchQuery={handlySetSearchQuery} />
       {isLoading && <Loader />}
-      {totalHits === 0 || !hits ? (
+      {totalHits === 0 || !images ? (
         <p>No data found</p>
       ) : (
-        <ImageGallery hits={hits} openModal={updateImg} />
+        <ImageGallery images={images} openModal={updateImg} />
       )}
       {totalHits > 12 && page < Math.ceil(totalHits / 12) && (
         <Button paginationPageUpdate={paginationPageUpdate} />

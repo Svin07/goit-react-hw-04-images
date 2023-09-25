@@ -1,7 +1,7 @@
 import css from './ImageGalleryItem.module.css';
 
 export default function ImageGalleryItem({
-  hit: { tags, webformatURL, largeImageURL },
+  image: { tags, webformatURL, largeImageURL },
   openModal,
 }) {
   return (
