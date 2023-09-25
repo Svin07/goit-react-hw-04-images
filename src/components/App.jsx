@@ -5,95 +5,74 @@ import Modal from './Modal/Modal';
 import Searchbar from './Searchbar/Searchbar';
 import './styles.css';
 import { getPicturesBySearch } from '../API/hits';
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 
-export class App extends Component {
-  state = {
-    hits: [],
-    showModal: false,
-    isLoading: false,
-    error: '',
-    searchQuery: '',
-    totalHits: 0,
-    page: 1,
-    imgUrl: '',
+export const App = () => {
+  const [hits, setHits] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [totalHits, setTotalHits] = useState(0);
+  const [page, setPage] = useState(1);
+  const [imgUrl, setImgUrl] = useState('');
+
+  useEffect(() => {
+    const fetchHits = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getPicturesBySearch(searchQuery, page);
+        const { hits, totalHits } = data;
+
+        setHits([...hits, ...hits]);
+        setTotalHits(totalHits);
+      } catch (error) {
+        setError(error.response.data);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    (searchQuery || page > 1) && fetchHits();
+  }, [searchQuery, page]);
+
+  const handlySetSearchQuery = value => {
+    setSearchQuery(value);
+    setPage(1);
+    setHits([]);
   };
 
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      this.state.page !== prevState.page ||
-      this.state.searchQuery !== prevState.searchQuery
-    ) {
-      this.fetchHits();
-    }
-  }
-
-  fetchHits = async () => {
-    try {
-      this.setState({ isLoading: true });
-      const data = await getPicturesBySearch(
-        this.state.searchQuery,
-        this.state.page
-      );
-      const { hits, totalHits } = data;
-
-      this.setState({
-        hits: [...this.state.hits, ...hits],
-        totalHits: totalHits,
-      });
-    } catch (error) {
-      this.setState({ error: error.response.data });
-    } finally {
-      this.setState({ isLoading: false });
-    }
+  const togleModal = () => {
+    setShowModal(!showModal);
   };
 
-  handlySetSearchQuery = value => {
-    this.setState({ searchQuery: value, page: 1, hits: [] });
+  const paginationPageUpdate = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
-  togleModal = () => {
-    this.setState(({ showModal }) => ({ showModal: !showModal }));
+  const updateImg = evt => {
+    setImgUrl(evt.target.dataset.url);
+    togleModal();
   };
 
-  paginationPageUpdate = () => {
-    this.setState(state => ({
-      page: state.page + 1,
-    }));
-  };
-
-  updateImg = evt => {
-    this.setState({
-      imgUrl: evt.target.dataset.url,
-    });
-
-    this.togleModal();
-  };
-
-  render() {
-    const { error, isLoading, hits, showModal, totalHits, page, imgUrl } =
-      this.state;
-
-    return (
-      <div>
-        {error && <h1>{Error}</h1>}
-        {showModal && (
-          <Modal onClose={this.togleModal}>
-            <img src={imgUrl} alt="" />
-          </Modal>
-        )}
-        <Searchbar onSubmit={this.handlySetSearchQuery} />
-        {isLoading && <Loader />}
-        {hits &&
-          (totalHits === 0 ? (
-            <p>No data found</p>
-          ) : (
-            <ImageGallery hits={hits} openModal={this.updateImg} />
-          ))}
-        {totalHits > 12 && page < Math.ceil(totalHits / 12) && (
-          <Button paginationPageUpdate={this.paginationPageUpdate} />
-        )}
-      </div>
-    );
-  }
-}
+  return (
+    <div>
+      {error && <h1>{error}</h1>}
+      {showModal && (
+        <Modal onClose={togleModal}>
+          <img src={imgUrl} alt="" />
+        </Modal>
+      )}
+      <Searchbar handlySetSearchQuery={handlySetSearchQuery} />
+      {isLoading && <Loader />}
+      {totalHits === 0 || !hits ? (
+        <p>No data found</p>
+      ) : (
+        <ImageGallery hits={hits} openModal={updateImg} />
+      )}
+      {totalHits > 12 && page < Math.ceil(totalHits / 12) && (
+        <Button paginationPageUpdate={paginationPageUpdate} />
+      )}
+    </div>
+  );
+};
