@@ -24,7 +24,7 @@ export const App = () => {
         const data = await getPicturesBySearch(searchQuery, page);
         const { hits, totalHits } = data;
 
-        setImages([...images, ...hits]);
+        setImages(prevImages => [...prevImages, ...hits]);
         setTotalHits(totalHits);
       } catch (error) {
         setError(error.response.data);
