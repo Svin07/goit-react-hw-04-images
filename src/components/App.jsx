@@ -18,6 +18,8 @@ export const App = () => {
   const [imgUrl, setImgUrl] = useState('');
 
   useEffect(() => {
+    if (!searchQuery) return;
+
     const fetchHits = async () => {
       try {
         setIsLoading(true);
@@ -33,7 +35,7 @@ export const App = () => {
       }
     };
 
-    (searchQuery || page > 1) && fetchHits();
+    fetchHits();
   }, [searchQuery, page]);
 
   const handlySetSearchQuery = value => {
